@@ -34,7 +34,7 @@ Diagnostic Result:
 - Probability of Failure: {prediction_result.get('failure_probability', 0)}
 - Failure Types: {prediction_result.get('failure_types', 'None')}
 
-Please provide a Markdown formatted report with the following sections:
+Please provide a Markdown formatted report with the following sections (Use strictly # and ## for headers, avoid using ==== underlines for headers):
 1. Executive Summary
 2. Diagnostic Analysis (explain what the failure types mean, if any)
 3. Recommended Immediate Actions
@@ -66,7 +66,7 @@ Please inspect the machine according to standard maintenance protocols for the i
     }
     
     payload = {
-        "model": "llama3-8b-8192",  # You can adjust the Groq model here
+        "model": "llama-3.1-8b-instant",  # Updated from deprecated model
         "messages": [
             {"role": "system", "content": "You are a helpful and expert vehicle maintenance analyst."},
             {"role": "user", "content": prompt}

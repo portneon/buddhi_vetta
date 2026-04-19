@@ -1,4 +1,17 @@
 from pydantic import BaseModel, Field
+from typing import List, Optional
+
+class ChatMessage(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+class ChatRequest(BaseModel):
+    message: str
+    history: List[ChatMessage] = Field(default_factory=list)
+
+class ChatResponse(BaseModel):
+    response: str
+    sources: Optional[List[str]] = None
 
 class MachineInput(BaseModel):
     Air_temperature: float

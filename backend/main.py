@@ -1,20 +1,21 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-# from dotenv import load_dotenv
-from schema import MachineInput
+from dotenv import load_dotenv
+load_dotenv()
+
+from schema import MachineInput, ChatRequest, ChatResponse
 from predictor import predict_machine_failure
 from vehiclereport import generate_maintenance_report
+from rag_service import get_chat_response
 
-# Load environment variables from .env file
-# load_dotenv()
+
 
 app = FastAPI()
 
-# Add CORS middleware to allow requests from frontend
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or your frontend URL
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,13 +29,13 @@ def health_check():
 @app.post("/predict")
 async def predict(data: MachineInput):
     try:
-        # Step 1: Get prediction from ML model
+      
         prediction_result = predict_machine_failure(data.dict())
         
-        # Step 2: Determine vehicle type from Type_L and Type_M
+       
         vehicle_type = 'L' if data.Type_L else 'M'
         
-        # Step 3: Generate detailed maintenance report using Groq AI
+       
         detailed_report = await generate_maintenance_report(
             prediction_result=prediction_result,
             vehicle_type=vehicle_type,
@@ -44,11 +45,26 @@ async def predict(data: MachineInput):
             model=data.model
         )
         
-        # Return both the AI text report AND the raw probability data
+       
         return {
             "report": detailed_report,
             "prediction": prediction_result
         }
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(request: ChatRequest):
+    try:
+        # Convert history format for the service
+        history_list = [{"role": m.role, "content": m.content} for m in request.history]
+        
+        chat_data = await get_chat_response(request.message, history_list)
+        
+        return ChatResponse(
+            response=chat_data["response"],
+            sources=chat_data.get("sources")
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
